@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Subh ❤️ Astha — Tic Tac Toe</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#ff6b81;
+      --accent2:#7ce3d6;
+      --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Helvetica,Arial;color:#e6eef8;background:linear-gradient(180deg,#071427 0%, #08192b 100%);display:flex;align-items:center;justify-content:center}
+
+    .wrap{width:100%;max-width:980px;padding:28px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:16px;padding:20px;box-shadow:0 10px 30px rgba(2,6,23,0.6);backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,0.03)}
+
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .title{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;box-shadow:0 8px 24px rgba(124,58,237,0.12)}
+    h1{font-size:20px;margin:0}
+    .subtitle{font-size:13px;color:rgba(230,238,248,0.65)}
+
+    .controls{display:flex;gap:10px;align-items:center}
+    button.btn{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;color:#dff3ff;cursor:pointer;font-weight:600}
+    button.btn:active{transform:translateY(1px)}
+
+    .board-wrap{display:flex;gap:20px;align-items:flex-start}
+    .board{width:420px;height:420px;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.02));padding:18px;border-radius:14px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:12px;position:relative}
+
+    .cell{background:linear-gradient(180deg,rgba(255,255,255,0.012),rgba(255,255,255,0.02));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:64px;color:#e9f8ff;cursor:pointer;user-select:none;transition:transform .12s ease, box-shadow .12s ease}
+    .cell:hover{transform:translateY(-6px);box-shadow:0 10px 20px rgba(0,0,0,0.4)}
+    .cell.taken{cursor:default;transform:none}
+
+    .info{flex:1}
+    .players{display:flex;flex-direction:column;gap:10px}
+    .player{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.03)}
+    .avatar{width:44px;height:44px;border-radius:10px;background:linear-gradient(180deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    .p-meta{display:flex;flex-direction:column}
+    .small{font-size:12px;color:rgba(230,238,248,0.6)}
+
+    .status{margin-top:14px;padding:12px;border-radius:10px;background:linear-gradient(90deg, rgba(0,0,0,0.18), rgba(255,255,255,0.01));font-weight:700}
+
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.7);display:flex;align-items:center;justify-content:center;z-index:40}
+    .modal{width:560px;max-width:94%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:28px;border-radius:16px;text-align:center;border:1px solid rgba(255,255,255,0.04)}
+    .modal h2{margin:0 0 8px 0;font-size:26px}
+    .modal p{margin:0 0 18px;color:rgba(230,238,248,0.72)}
+    .big-heart{font-size:48px;display:inline-block;transform-origin:center;animation:beat 1s infinite}
+    @keyframes beat{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+    .sparkle{position:absolute;inset:-40px;pointer-events:none;background:radial-gradient(circle at 10% 20%, rgba(255,107,129,0.06), transparent 6%),radial-gradient(circle at 80% 80%, rgba(124,227,214,0.04), transparent 8%)}
+
+    /* win line */
+    .win-line{position:absolute;height:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px;transform-origin:center;box-shadow:0 8px 30px rgba(124,58,237,0.16);z-index:20}
+
+    /* small helper */
+    .hint{font-size:13px;color:rgba(230,238,248,0.6)}
+
+    /* confetti canvas */
+    #confetti{position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:30}
+
+    footer{margin-top:18px;font-size:13px;color:rgba(230,238,248,0.6);text-align:center}
+
+    /* responsive */
+    @media(max-width:860px){.board{width:320px;height:320px}.cell{font-size:48px}}
+    @media(max-width:580px){.board-wrap{flex-direction:column;align-items:center}.info{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <header>
+        <div class="title">
+          <div class="logo">S&A</div>
+          <div>
+            <h1>Subh ❤️ Astha — Tic Tac Toe</h1>
+            <div class="subtitle">A playful game with animations — made for Subh and Astha</div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn" id="resetBtn">New Game</button>
+          <button class="btn" id="toggleHeart">Remove Heart</button>
+        </div>
+      </header>
+
+      <div class="board-wrap">
+        <div class="board" id="board">
+          <div class="sparkle"></div>
+          <!-- 9 cells -->
+          <div class="cell" data-index="0"></div>
+          <div class="cell" data-index="1"></div>
+          <div class="cell" data-index="2"></div>
+          <div class="cell" data-index="3"></div>
+          <div class="cell" data-index="4"></div>
+          <div class="cell" data-index="5"></div>
+          <div class="cell" data-index="6"></div>
+          <div class="cell" data-index="7"></div>
+          <div class="cell" data-index="8"></div>
+        </div>
+
+        <aside class="info">
+          <div class="players">
+            <div class="player"><div class="avatar">S</div><div class="p-meta"><strong>Subh</strong><span class="small">Plays: X</span></div></div>
+            <div class="player"><div class="avatar">A</div><div class="p-meta"><strong>Astha</strong><span class="small">Plays: O</span></div></div>
+          </div>
+
+          <div class="status" id="status">Turn: Subh (X)</div>
+          <div style="height:10px"></div>
+          <div class="hint">Tip: Click a cell to make your move. First to 3 in a row wins.</div>
+        </aside>
+      </div>
+
+      <footer>Save this file as <code>index.html</code> and open in a browser — or host on GitHub Pages to share the link.</footer>
+    </div>
+  </div>
+
+  <!-- modal -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <div class="big-heart">💖</div>
+      <h2 id="modalTitle">Hi Astha</h2>
+      <p id="modalSub">Open With: Hi AD</p>
+      <div style="height:12px"></div>
+      <button class="btn" id="smashBtn">Smash me hard</button>
+    </div>
+  </div>
+
+  <canvas id="confetti"></canvas>
+
+  <script>
+    // Basic Tic Tac Toe game logic with nice animations
+    const boardEl = document.getElementById('board');
+    const cells = Array.from(document.querySelectorAll('.cell'));
+    const status = document.getElementById('status');
+    const resetBtn = document.getElementById('resetBtn');
+    const modal = document.getElementById('modal');
+    const smashBtn = document.getElementById('smashBtn');
+    const toggleHeart = document.getElementById('toggleHeart');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSub = document.getElementById('modalSub');
+
+    // Personalization extracted from the user's request
+    const playerX = 'Subh';
+    const playerO = 'Astha';
+
+    // Game state
+    let board = Array(9).fill(null); // 'X' or 'O'
+    let current = 'X';
+    let running = true;
+
+    const winningCombos = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    function render(){
+      cells.forEach((cell,i)=>{
+        cell.classList.remove('taken');
+        cell.innerHTML = '';
+        const val = board[i];
+        if(val){
+          cell.classList.add('taken');
+          const el = document.createElement('div');
+          el.style.transform = 'scale(0) rotate(-10deg)';
+          el.style.transition = 'transform .35s cubic-bezier(.2,.9,.3,1)';
+          el.style.fontWeight = '800';
+          el.innerText = val;
+          el.classList.add('mark');
+          // style X and O differently
+          if(val === 'X') el.style.fontFamily = 'monospace';
+          else el.style.fontFamily = 'serif';
+
+          cell.appendChild(el);
+          // trigger animation
+          requestAnimationFrame(()=>{ el.style.transform = 'scale(1) rotate(0deg)'; });
+        }
+      });
+
+      if(!running){
+        status.innerText = 'Game over';
+        return;
+      }
+      status.innerText = `Turn: ${current === 'X' ? playerX + ' (X)' : playerO + ' (O)'}`;
+    }
+
+    function checkWin(){
+      for(const combo of winningCombos){
+        const [a,b,c] = combo;
+        if(board[a] && board[a] === board[b] && board[a] === board[c]){
+          return {winner: board[a], combo};
+        }
+      }
+      if(board.every(Boolean)) return {draw:true};
+      return null;
+    }
+
+    function showWinLine(combo){
+      // compute positions of a, c
+      const a = cells[combo[0]].getBoundingClientRect();
+      const c = cells[combo[2]].getBoundingClientRect();
+      const parent = boardEl.getBoundingClientRect();
+      const line = document.createElement('div');
+      line.className = 'win-line';
+      // center coords
+      const x1 = a.left + a.width/2 - parent.left;
+      const y1 = a.top + a.height/2 - parent.top;
+      const x2 = c.left + c.width/2 - parent.left;
+      const y2 = c.top + c.height/2 - parent.top;
+      const dx = x2-x1, dy = y2-y1;
+      const len = Math.sqrt(dx*dx + dy*dy);
+      const angle = Math.atan2(dy,dx) * 180/Math.PI;
+      line.style.width = len + 'px';
+      line.style.left = (x1 + x2)/2 - len/2 + 'px';
+      line.style.top = (y1 + y2)/2 - 4 + 'px';
+      line.style.transform = `rotate(${angle}deg)`;
+      boardEl.appendChild(line);
+      // animate fade + grow
+      line.style.opacity = 0;
+      line.animate([{opacity:0, transform:line.style.transform+' scale(0.8)'},{opacity:1, transform:line.style.transform+' scale(1)'}],{duration:420,fill:'forwards',easing:'cubic-bezier(.2,.9,.3,1)'});
+    }
+
+    function makeMove(i){
+      if(!running) return;
+      if(board[i]) return;
+      board[i] = current;
+      render();
+      const res = checkWin();
+      if(res){
+        running = false;
+        if(res.draw){
+          status.innerText = 'Draw — no one wins';
+          burstConfetti(30);
+        } else {
+          const who = res.winner === 'X' ? playerX : playerO;
+          status.innerText = `${who} wins!`;
+          showWinLine(res.combo);
+          burstConfetti(200);
+        }
+      } else {
+        current = current === 'X' ? 'O' : 'X';
+        status.innerText = `Turn: ${current === 'X' ? playerX + ' (X)' : playerO + ' (O)'}`;
+      }
+    }
+
+    cells.forEach((cell,i)=>{
+      cell.addEventListener('click',()=> makeMove(i));
+      // keyboard accessibility
+      cell.tabIndex = 0;
+      cell.addEventListener('keydown',(e)=>{ if(e.key === 'Enter' || e.key === ' ') makeMove(i); });
+    });
+
+    resetBtn.addEventListener('click',()=>{
+      startNew();
+    });
+
+    toggleHeart.addEventListener('click',()=>{
+      const heart = document.querySelector('.big-heart');
+      if(heart){
+        heart.remove();
+        toggleHeart.innerText = 'Show Heart';
+      } else {
+        const h = document.createElement('div');
+        h.className = 'big-heart';
+        h.innerText = '💖';
+        const modalInner = document.querySelector('.modal');
+        modalInner.insertBefore(h, modalInner.firstChild);
+        toggleHeart.innerText = 'Remove Heart';
+      }
+    });
+
+    function startNew(){
+      board = Array(9).fill(null);
+      current = 'X';
+      running = true;
+      // remove any win lines
+      Array.from(document.querySelectorAll('.win-line')).forEach(n=>n.remove());
+      render();
+    }
+
+    // Modal behavior: show greeting. On Smash, start the game (close modal)
+    smashBtn.addEventListener('click',()=>{
+      // theatrical tiny scale
+      smashBtn.animate([{transform:'scale(1)'},{transform:'scale(.92)'},{transform:'scale(1)'}],{duration:320});
+      // change modal texts per request variations
+      modalTitle.innerText = 'Hi Astha';
+      modalSub.innerText = 'Open With: Hi AD';
+      modal.style.display = 'none';
+      startNew();
+    });
+
+    // Show modal on load
+    window.addEventListener('load',()=>{
+      // slight entrance animation
+      modal.querySelector('.modal').animate([{opacity:0, transform:'translateY(20px) scale(.98)'},{opacity:1, transform:'translateY(0) scale(1)'}],{duration:420,easing:'cubic-bezier(.2,.9,.3,1)'});
+    });
+
+    // confetti implementation (simple particle system)
+    const confettiCanvas = document.getElementById('confetti');
+    confettiCanvas.width = innerWidth;
+    confettiCanvas.height = innerHeight;
+    const ctx = confettiCanvas.getContext('2d');
+    let particles = [];
+    function rand(min,max){return Math.random()*(max-min)+min}
+    function burstConfetti(amount){
+      for(let i=0;i<amount;i++){
+        particles.push({
+          x: rand(0,innerWidth),
+          y: rand(-40,innerHeight/2),
+          vx: rand(-4,4),
+          vy: rand(1,6),
+          size: rand(6,14),
+          life: rand(50,140),
+          color: `hsl(${Math.floor(rand(0,360))} 80% 60%)`,
+          rot: rand(0,360)
+        });
+      }
+    }
+    function step(){
+      ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+      particles.forEach((p,i)=>{
+        p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life -= 1; p.rot += p.vx*2;
+        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot* Math.PI/180);
+        ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+        ctx.restore();
+        if(p.life <= 0 || p.y > innerHeight+40) particles.splice(i,1);
+      });
+      requestAnimationFrame(step);
+    }
+    step();
+
+    // Handle window resize for confetti canvas
+    window.addEventListener('resize',()=>{ confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight; });
+
+    // initialize
+    render();
+  </script>
+</body>
+</html>
